@@ -268,6 +268,7 @@ impl PdfCraftApp {
             "view.theme.system" => self.set_theme_preference(ThemePreference::System),
             "view.theme.light" => self.set_theme_preference(ThemePreference::Light),
             "view.theme.dark" => self.set_theme_preference(ThemePreference::Dark),
+            "edit.attach" => return self.execute_unguarded("comment.attach"),
             "comment.list" => self.choose_right_panel(Some(RightPanel::Comments)),
             tool if crate::comments::CommentTool::from_command(tool).is_some() => {
                 let Some(tool) = crate::comments::CommentTool::from_command(tool) else { return false };

@@ -12,7 +12,7 @@ fn main() {
     wasm_bindgen_futures::spawn_local(async move {
         let Some(canvas) = web_sys::window()
             .and_then(|w| w.document())
-            .and_then(|d| d.get_element_by_id("pdfcraft"))
+            .and_then(|d| d.get_element_by_id("lutapdf").or_else(|| d.get_element_by_id("pdfcraft")))
             .and_then(|e| e.dyn_into::<web_sys::HtmlCanvasElement>().ok())
         else {
             return;
@@ -23,8 +23,8 @@ fn main() {
                 options,
                 Box::new(|cc| {
                     let mut app = PdfCraftApp::new();
-                    // "printcraft": settings saved under the app's former name, PrintCraft.
-                    if let Some(json) = cc.storage.and_then(|s| s.get_string("pdfcraft").or_else(|| s.get_string("printcraft"))) {
+                    // "printcraft" / "pdfcraft": settings saved under former names.
+                    if let Some(json) = cc.storage.and_then(|s| s.get_string("lutapdf").or_else(|| s.get_string("pdfcraft")).or_else(|| s.get_string("printcraft"))) {
                         app.restore(&json);
                     }
                     // `?file=<url>` opens a PDF from a URL (same-origin or CORS-enabled).
@@ -41,7 +41,7 @@ fn main() {
                                     }
                                 }
                                 Err(e) => {
-                                    eframe::web_sys::console::error_1(&format!("PdfCraft: could not fetch {url}: {e}").into());
+                                    eframe::web_sys::console::error_1(&format!("LutaPDF: could not fetch {url}: {e}").into());
                                     // Shown in the app too, not only in the console (#173).
                                     if let Ok(mut q) = failed.lock() {
                                         q.push((name, e));
@@ -247,5 +247,5 @@ mod host {
 
 #[cfg(not(target_arch = "wasm32"))]
 fn main() {
-    eprintln!("pdfcraft-web targets wasm32: run `trunk serve` or `trunk build --release` in apps/pdfcraft-web");
+    eprintln!("lutapdf-web targets wasm32: run `trunk serve` or `trunk build --release` in apps/pdfcraft-web");
 }

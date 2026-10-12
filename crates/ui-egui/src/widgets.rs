@@ -503,7 +503,7 @@ pub fn artcraft_logo(ui: &mut egui::Ui, height: f32) -> Response {
     } else {
         ("bytes://artcraft-logo.svg", include_bytes!("../../../docs/brand/artcraft-logo.svg"))
     };
-    ui.add(egui::Image::from_bytes(uri, bytes).max_height(height).alt_text("ArtCraft"))
+    ui.add(egui::Image::from_bytes(uri, bytes).max_height(height).alt_text("LutaPDF"))
 }
 
 /// The ArtCraft mark (brand blue, works on light and dark), `size` points square.
@@ -511,18 +511,19 @@ pub fn artcraft_mark(ui: &mut egui::Ui, size: f32) -> Response {
     ui.add(
         egui::Image::from_bytes("bytes://artcraft-mark.svg", include_bytes!("../../../docs/brand/artcraft-mark.svg"))
             .fit_to_exact_size(vec2(size, size))
-            .alt_text("ArtCraft"),
+            .alt_text("LutaPDF"),
     )
 }
 
 /// Buttons for every community link (`pdfcraft_engine::links`), Discord first and prominent.
 /// Returns the registry command of the one clicked.
+#[allow(dead_code)]
 pub fn community_links(ui: &mut egui::Ui) -> Option<&'static str> {
     let mut clicked = None;
     ui.horizontal_wrapped(|ui| {
         ui.spacing_mut().item_spacing = vec2(8.0, 8.0);
         for (i, l) in pdfcraft_engine::links::LINKS.iter().enumerate() {
-            let resp = if i == 0 { icon_pill(ui, l.icon, tl!("Join our Discord"), true) } else { icon_pill(ui, l.icon, tl!(l.label), false) };
+            let resp = icon_pill(ui, l.icon, tl!(l.label), i == 0);
             if resp.on_hover_text(l.url).clicked() {
                 clicked = Some(l.command);
             }

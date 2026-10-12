@@ -750,7 +750,7 @@ fn mcp_session_over_stdio() {
     assert_eq!(replies.len(), 4, "the notification gets no reply");
 
     assert_eq!(replies[0]["result"]["protocolVersion"], "2025-03-26");
-    assert_eq!(replies[0]["result"]["serverInfo"]["name"], "pdfcraft");
+    assert_eq!(replies[0]["result"]["serverInfo"]["name"], "lutapdf");
     assert_eq!(replies[1]["result"]["tools"].as_array().unwrap().len(), tools().len());
     assert_eq!(replies[2]["result"]["structuredContent"]["pages"], 3);
     assert_eq!(replies[2]["result"]["isError"], false);
@@ -788,19 +788,21 @@ fn mcp_resources_expose_open_documents() {
     rpc(&mut s, 4, "tools/call", json!({ "name": "doc_open", "arguments": { "path": "a.pdf" } }));
     let list = rpc(&mut s, 5, "resources/list", json!({}))["result"]["resources"].as_array().cloned().unwrap();
     assert_eq!(list.len(), 2 + 3 + 2, "info, text, three page images and two session resources");
-    assert_eq!(list[0]["uri"], "pdfcraft://doc/1/info");
+    assert_eq!(list[0]["uri"], "lutapdf://doc/1/info");
     let read = |s: &mut McpServer, uri: &str| rpc(s, 6, "resources/read", json!({ "uri": uri }))["result"]["contents"][0].clone();
-    let text = read(&mut s, "pdfcraft://doc/1/text");
+    let text = read(&mut s, "lutapdf://doc/1/text");
     assert_eq!(text["mimeType"], "text/plain");
     assert!(text["text"].as_str().unwrap().contains("Page 2\nPage 2"), "{text}");
+    assert_eq!(read(&mut s, "lutapdf://doc/1/page/3/text")["text"], "Page 3");
+    // Backward compatibility: pdfcraft:// URIs still resolve.
     assert_eq!(read(&mut s, "pdfcraft://doc/1/page/3/text")["text"], "Page 3");
-    let info: Value = serde_json::from_str(read(&mut s, "pdfcraft://doc/1/info")["text"].as_str().unwrap()).unwrap();
+    let info: Value = serde_json::from_str(read(&mut s, "lutapdf://doc/1/info")["text"].as_str().unwrap()).unwrap();
     assert_eq!(info["pages"].as_array().unwrap().len(), 3);
-    let img = read(&mut s, "pdfcraft://doc/1/page/1/image?dpi=36");
+    let img = read(&mut s, "lutapdf://doc/1/page/1/image?dpi=36");
     use base64::Engine as _;
     let png = base64::engine::general_purpose::STANDARD.decode(img["blob"].as_str().unwrap()).unwrap();
     assert_eq!(&png[1..4], b"PNG");
-    assert_eq!(rpc(&mut s, 7, "resources/read", json!({ "uri": "pdfcraft://doc/1/page/9/image" }))["error"]["code"], -32602);
+    assert_eq!(rpc(&mut s, 7, "resources/read", json!({ "uri": "lutapdf://doc/1/page/9/image" }))["error"]["code"], -32602);
 }
 
 /// A server in compact mode with `dir` as its root.

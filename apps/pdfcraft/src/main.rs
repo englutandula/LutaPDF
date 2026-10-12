@@ -42,7 +42,7 @@ mod updates;
 mod windows_manifest;
 
 /// Freedesktop app id: the `.desktop` file name and the hicolor icon name.
-const APP_ID: &str = "ai.storyteller.pdfcraft";
+const APP_ID: &str = "com.lutatech.lutapdf";
 
 /// The app icon (assets/app-icon/README.md). macOS gets the version on Apple's icon grid, with a
 /// transparent margin; Windows and Linux get the full-bleed tile.
@@ -55,13 +55,13 @@ const APP_ICON_PNG: &[u8] = include_bytes!("../../../assets/app-icon/hicolor/256
 const LEGACY_STORAGE_KEY: &str = "printcraft";
 
 /// The settings folder: `app.ron` and the `logs` folder (docs/development.md). In portable mode
-/// it is `PdfCraftData` beside the executable (#157). eframe would otherwise derive it from the
-/// app id; keep it under "PdfCraft".
+/// it is `LutaPDFData` beside the executable (#157). eframe would otherwise derive it from the
+/// app id; keep it under "LutaPDF".
 fn settings_dir() -> Option<std::path::PathBuf> {
     if let Some(dir) = pdfcraft_ui_egui::portable::data_dir() {
         return Some(dir.to_path_buf());
     }
-    eframe::storage_dir("PdfCraft")
+    eframe::storage_dir("LutaPDF")
 }
 
 /// Move the settings and crash-recovery folders of the app's former name, PrintCraft, to the new
@@ -76,7 +76,7 @@ fn migrate_legacy_folders() {
     // Recovery lives in the settings folder except on Windows, where it is under %LOCALAPPDATA%.
     if cfg!(windows) {
         let local = std::env::var_os("LOCALAPPDATA").filter(|v| !v.is_empty()).map(std::path::PathBuf::from);
-        moves.push((local.as_ref().map(|d| d.join("PrintCraft")), local.map(|d| d.join("PdfCraft"))));
+        moves.push((local.as_ref().map(|d| d.join("PdfCraft")), local.map(|d| d.join("LutaPDF"))));
     }
     for (old, new) in moves {
         let (Some(old), Some(new)) = (old, new) else { continue };
@@ -141,7 +141,7 @@ fn main() -> eframe::Result {
             log::error!("{report}");
         } else {
             // `eprintln!` panics on a broken stderr pipe, and a panic inside the panic hook aborts.
-            let _ = std::io::Write::write_fmt(&mut std::io::stderr(), format_args!("pdfcraft: {report}\n"));
+            let _ = std::io::Write::write_fmt(&mut std::io::stderr(), format_args!("lutapdf: {report}\n"));
         }
     }));
     let mut files = Vec::new();
@@ -153,7 +153,7 @@ fn main() -> eframe::Result {
     while let Some(a) = args.next() {
         match a.as_str() {
             "--version" => {
-                println!("pdfcraft {}", env!("CARGO_PKG_VERSION"));
+                println!("lutapdf {}", env!("CARGO_PKG_VERSION"));
                 return Ok(());
             }
             "--control" => control_file = args.next(),
@@ -173,7 +173,7 @@ fn main() -> eframe::Result {
     // Records logged until now are written to it first.
     if let (Some(logger), Some(dir)) = (logger, settings_dir()) {
         match logger.attach_dir(&dir.join("logs")) {
-            Ok(path) => log::info!("PdfCraft {}, log file {}", env!("CARGO_PKG_VERSION"), path.display()),
+            Ok(path) => log::info!("LutaPDF {}, log file {}", env!("CARGO_PKG_VERSION"), path.display()),
             // Standard error only by now (`attach_dir` gave up on the file); unlike `eprintln!`, never panics.
             Err(e) => log::warn!("no log file: {e}"),
         }
@@ -187,7 +187,7 @@ fn main() -> eframe::Result {
         single_instance::Claim::Primary(server) => Some(server),
         single_instance::Claim::Alone => None,
     };
-    let choice = renderer_choice(std::env::var("PDFCRAFT_RENDERER").ok().as_deref());
+    let choice = renderer_choice(std::env::var("LUTAPDF_RENDERER").or_else(|_| std::env::var("PDFCRAFT_RENDERER")).ok().as_deref());
     let launch = Launch { files, options, control_file, create_images, integrated };
     // Finder, Open With and the Dock deliver files as Apple events, not arguments; catch the one
     // that launched us as well as later ones. Lives until the event loop returns.
@@ -197,7 +197,7 @@ fn main() -> eframe::Result {
     let started = Rc::new(Cell::new(false));
     let first = if choice == RendererChoice::Gl { eframe::Renderer::Glow } else { eframe::Renderer::Wgpu };
     let result = eframe::run_native(
-        "PdfCraft",
+        "LutaPDF",
         native_options(integrated, first),
         app_creator(
             launch.clone(),
@@ -213,9 +213,9 @@ fn main() -> eframe::Result {
         Err(e @ eframe::Error::Wgpu(_)) if retry_with_gl(choice, started.get()) => {
             // Old or unusual GPUs and drivers (#461, #435, #392) can't give wgpu a device; OpenGL
             // usually still works there, so that's better than quitting.
-            log::error!("the GPU renderer (wgpu) didn't start: {e}. Starting with OpenGL instead; set PDFCRAFT_RENDERER=gl to skip wgpu.");
+            log::error!("the GPU renderer (wgpu) didn't start: {e}. Starting with OpenGL instead; set LUTAPDF_RENDERER=gl to skip wgpu.");
             eframe::run_native(
-                "PdfCraft",
+                "LutaPDF",
                 native_options(integrated, eframe::Renderer::Glow),
                 app_creator(
                     launch,
@@ -258,7 +258,7 @@ fn retry_with_gl(choice: RendererChoice, app_started: bool) -> bool {
 /// The window and renderer settings for one run.
 fn native_options(integrated: bool, renderer: eframe::Renderer) -> eframe::NativeOptions {
     let mut viewport = egui::ViewportBuilder::default()
-        .with_title("PdfCraft")
+        .with_title("LutaPDF")
         .with_inner_size([1440.0, 920.0])
         .with_min_inner_size([820.0, 520.0])
         .with_drag_and_drop(true)
@@ -307,7 +307,7 @@ fn app_creator<'a>(
         app.enable_desktop_theme();
         // The system's reopen-windows choice (macOS) starts the preference; a saved choice replaces it.
         app.reopen_last_session = reopen::system_default();
-        if let Some(json) = cc.storage.and_then(|s| s.get_string("pdfcraft").or_else(|| s.get_string(LEGACY_STORAGE_KEY))) {
+        if let Some(json) = cc.storage.and_then(|s| s.get_string("lutapdf").or_else(|| s.get_string("pdfcraft")).or_else(|| s.get_string(LEGACY_STORAGE_KEY))) {
             app.restore(&json);
         }
         app.integrated_titlebar = integrated;
@@ -377,7 +377,7 @@ fn app_creator<'a>(
 /// `unsafe` calls.
 fn notify_software_renderer(app: &mut PdfCraftApp, device_type: eframe::wgpu::DeviceType) {
     if device_type == eframe::wgpu::DeviceType::Cpu {
-        app.notify_tr("PdfCraft is drawing without a graphics processor, so it may be slow. Updating the graphics driver may help.");
+        app.notify_tr("LutaPDF is drawing without a graphics processor, so it may be slow. Updating the graphics driver may help.");
     }
 }
 
@@ -395,7 +395,7 @@ fn open_control_channel(file: &str, endpoint: std::io::Result<pdfcraft_ui_egui::
             Ok(())
         }
         Err(e) => {
-            let message = format!("--control {file}: {e}. Use a control file in a folder only you can write, such as ~/.pdfcraft-control.json");
+            let message = format!("--control {file}: {e}. Use a control file in a folder only you can write, such as ~/.lutapdf-control.json");
             log::error!("{message}");
             Err(message)
         }

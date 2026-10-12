@@ -7,13 +7,13 @@
   <key>CFBundleDevelopmentRegion</key>
   <string>en</string>
   <key>CFBundleDisplayName</key>
-  <string>PdfCraft</string>
+  <string>LutaPDF</string>
   <key>CFBundleName</key>
-  <string>PdfCraft</string>
+  <string>LutaPDF</string>
   <key>CFBundleExecutable</key>
-  <string>PdfCraft</string>
+  <string>LutaPDF</string>
   <key>CFBundleIdentifier</key>
-  <string>ai.storyteller.pdfcraft</string>
+  <string>com.lutatech.lutapdf</string>
   <key>CFBundleInfoDictionaryVersion</key>
   <string>6.0</string>
   <key>CFBundlePackageType</key>
@@ -24,9 +24,9 @@
   <string>@SHORT_VERSION@</string>
   <key>CFBundleVersion</key>
   <string>@SHORT_VERSION@</string>
-  <key>PdfCraftVersion</key>
+  <key>LutaPDFVersion</key>
   <string>@VERSION@</string>
-  <key>PdfCraftBuildCommit</key>
+  <key>LutaPDFBuildCommit</key>
   <string>@BUILD_SHA@</string>
   <key>CFBundleIconFile</key>
   <string>PdfCraft</string>
@@ -43,7 +43,7 @@
   <key>NSRequiresAquaSystemAppearance</key>
   <false/>
   <key>NSHumanReadableCopyright</key>
-  <string>Copyright © the PdfCraft authors. MIT OR Apache-2.0.</string>
+  <string>Copyright © LutaTech. All rights reserved.</string>
 
   <!-- Documents PdfCraft opens (#73): it is offered under Open With and can be made the default
        for PDFs, without taking over from the system's viewer on install ("Alternate"). Declared by

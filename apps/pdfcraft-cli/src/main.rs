@@ -31,7 +31,7 @@ use pdfcraft_render::{PageRenderer, RenderConfig, RenderRequest, RequestKind, in
 macro_rules! mcp_usage {
     () => {
         "\
-pdfcraft-cli mcp    [--root DIR] [--compact]              MCP server on stdin/stdout (opt-in)
+lutapdf-cli mcp    [--root DIR] [--compact]              MCP server on stdin/stdout (opt-in)
                                                            --compact lists a core set of tools plus tool_search and tool_call
 "
     };
@@ -46,25 +46,25 @@ macro_rules! mcp_usage {
 /// The full usage, printed by `--help` (also after a command, e.g. `render --help`).
 const USAGE: &str = concat!(
     "\
-pdfcraft-cli info   <file.pdf> [--password PW]            document summary as JSON
-pdfcraft-cli render <file.pdf> --page N [--dpi 96] --out x.png   (.png, .jpg, .tif or .pam)
-pdfcraft-cli text   <file.pdf> [--page N]                  extracted text (pages separated by form feeds)
-pdfcraft-cli edit   <in.pdf> --out out.pdf [--rotate 1,3:90] [--delete 2,4] [--move 5:1]
+lutapdf-cli info   <file.pdf> [--password PW]            document summary as JSON
+lutapdf-cli render <file.pdf> --page N [--dpi 96] --out x.png   (.png, .jpg, .tif or .pam)
+lutapdf-cli text   <file.pdf> [--page N]                  extracted text (pages separated by form feeds)
+lutapdf-cli edit   <in.pdf> --out out.pdf [--rotate 1,3:90] [--delete 2,4] [--move 5:1]
                       [--insert-blank 1] [--title T] [--author A] [--full]
-pdfcraft-cli combine <a.pdf> <b.pdf> … --out combined.pdf
-pdfcraft-cli extract <in.pdf> --pages 1,3,5 --out out.pdf
-pdfcraft-cli split   <in.pdf> (--every N | --before 3,7) [--out-dir DIR]
-pdfcraft-cli check  <files or dirs…> [--timeout 20] [--dpi 36] [--json out.json]
-pdfcraft-cli audit  <file.pdf> [--password PW]            find faux redactions (fails when found)
-pdfcraft-cli tools                                       automation tools and their JSON Schemas
-pdfcraft-cli run    <tool> [key=value …] [--root DIR] [--out image.png]
-pdfcraft-cli run    --script steps.json [--root DIR]      [{\"tool\": \"doc_open\", \"args\": {…}}, …]
+lutapdf-cli combine <a.pdf> <b.pdf> … --out combined.pdf
+lutapdf-cli extract <in.pdf> --pages 1,3,5 --out out.pdf
+lutapdf-cli split   <in.pdf> (--every N | --before 3,7) [--out-dir DIR]
+lutapdf-cli check  <files or dirs…> [--timeout 20] [--dpi 36] [--json out.json]
+lutapdf-cli audit  <file.pdf> [--password PW]            find faux redactions (fails when found)
+lutapdf-cli tools                                       automation tools and their JSON Schemas
+lutapdf-cli run    <tool> [key=value …] [--root DIR] [--out image.png]
+lutapdf-cli run    --script steps.json [--root DIR]      [{\"tool\": \"doc_open\", \"args\": {…}}, …]
 ",
     mcp_usage!(),
     "\
-pdfcraft-cli ui     --control FILE <method> [key=value …] [--out shot.png]
+lutapdf-cli ui     --control FILE <method> [key=value …] [--out shot.png]
                                                            drive a running app started with --control FILE
-help and feedback: https://discord.gg/artcraft"
+help and feedback: https://lutatech.com"
 );
 
 fn main() -> ExitCode {
@@ -95,13 +95,13 @@ fn main() -> ExitCode {
         #[cfg(not(feature = "mcp"))]
         Some("mcp") => Err("mcp: this build leaves out the MCP server (built without the `mcp` feature)".into()),
         Some("--version") => version(),
-        Some(other) => Err(format!("unknown command '{other}'; see pdfcraft-cli --help").into()),
+        Some(other) => Err(format!("unknown command '{other}'; see lutapdf-cli --help").into()),
     };
     match result {
         Ok(()) => ExitCode::SUCCESS,
         Err(CliError::Stdout(e)) if e.kind() == std::io::ErrorKind::BrokenPipe => ExitCode::SUCCESS,
         Err(e) => {
-            let _ = writeln!(std::io::stderr().lock(), "pdfcraft-cli: {e}");
+            let _ = writeln!(std::io::stderr().lock(), "lutapdf-cli: {e}");
             ExitCode::FAILURE
         }
     }
@@ -141,8 +141,7 @@ fn stdout_line(line: std::fmt::Arguments<'_>) -> Result<(), CliError> {
 }
 
 fn version() -> Result<(), CliError> {
-    stdout_line(format_args!("pdfcraft-cli {}", env!("CARGO_PKG_VERSION")))?;
-    stdout_line(format_args!("Discord: {}  (help and feedback)", pdfcraft_engine::links::DISCORD))?;
+    stdout_line(format_args!("lutapdf-cli {}", env!("CARGO_PKG_VERSION")))?;
     stdout_line(format_args!("Web:     {}", pdfcraft_engine::links::APP_PAGE))?;
     stdout_line(format_args!("Source:  {}", pdfcraft_engine::links::GITHUB))?;
     Ok(())
@@ -762,7 +761,7 @@ fn mcp(args: &[String]) -> Result<(), CliError> {
 fn ui(args: &[String]) -> Result<(), CliError> {
     validate_options("ui", args, UI_OPTIONS)?;
     use std::io::{BufRead, BufReader, Write as _};
-    let file = flag(args, "--control").ok_or("ui: missing --control FILE (start the app with `pdfcraft --control FILE`)")?;
+    let file = flag(args, "--control").ok_or("ui: missing --control FILE (start the app with `lutapdf --control FILE`)")?;
     let info = read_control_file(file)?;
     let port = info["port"].as_u64().ok_or(format!("{file}: no port"))?;
     // Refused rather than truncated, which would quietly reach some other port.
@@ -806,7 +805,7 @@ fn ui(args: &[String]) -> Result<(), CliError> {
 const CONTROL_FILE_MAX: u64 = 64 * 1024;
 
 const CONTROL_FILE_ADVICE: &str =
-    "Start the app with a control file in a folder only you can write, such as `pdfcraft --control ~/.pdfcraft-control.json`";
+    "Start the app with a control file in a folder only you can write, such as `lutapdf --control ~/.lutapdf-control.json`";
 
 /// Read the file written by `pdfcraft --control FILE`.
 ///

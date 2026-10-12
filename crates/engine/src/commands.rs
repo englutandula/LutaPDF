@@ -271,6 +271,7 @@ pub const COMMANDS: &[CommandSpec] = &[
     c("edit.remove_links", "Remove all links", None, None, Modification, "trash-2"),
     c("edit.bates", "Add Bates numbering…", None, None, Modification, "hash"),
     c("edit.image", "Add image…", None, None, Modification, "image-plus"),
+    c("edit.attach", "Attach file", None, None, Annotate, "paperclip"),
     c("redact.mark", "Redact text and images", None, None, Modification, "rectangle-horizontal"),
     c("redact.pages", "Redact pages…", None, None, Modification, "file-x"),
     c("redact.search", "Find text and redact…", None, None, Modification, "file-search"),
@@ -355,12 +356,11 @@ pub const COMMANDS: &[CommandSpec] = &[
     c("page.split", "Split document…", PAGES, None, Assembly, "scissors"),
     c("page.number", "Number pages…", PAGES, None, Assembly, "hash"),
     c("help.shortcuts", "Keyboard shortcuts", HELP, None, Nothing, "circle-help"),
-    c("help.discord", "Join the ArtCraft Discord", HELP, None, Nothing, "messages-square"),
-    c("help.app_page", "PdfCraft web page", HELP, None, Nothing, "globe"),
-    c("help.github", "PdfCraft on GitHub", HELP, None, Nothing, "code-xml"),
-    c("help.website", "ArtCraft website", HELP, None, Nothing, "external-link"),
+    c("help.app_page", "LutaPDF web page", HELP, None, Nothing, "globe"),
+    c("help.github", "LutaPDF on GitHub", HELP, None, Nothing, "code-xml"),
+    c("help.website", "LutaTech website", HELP, None, Nothing, "external-link"),
     c("help.check_updates", "Check for updates…", HELP, None, Nothing, "cloud"),
-    c("help.about", "About PdfCraft", HELP, None, Nothing, "info"),
+    c("help.about", "About LutaPDF", HELP, None, Nothing, "info"),
 ];
 
 pub fn command(id: &str) -> Option<&'static CommandSpec> {

@@ -30,7 +30,7 @@ pub const LANGUAGES: &[(&str, &str)] = &[("en", "English")];
 pub enum OcrError {
     /// Shown to end users (release packages ship the models; a source build fetches them with
     /// `cargo xtask models`). The UI catalogs key this exact text.
-    #[error("the text recognition models are not installed (reinstall PdfCraft, or set PDFCRAFT_MODELS to the folder that holds them)")]
+    #[error("the text recognition models are not installed (reinstall LutaPDF, or set LUTAPDF_MODELS to the folder that holds them)")]
     NoModels,
     #[error("loading {0}: {1}")]
     Load(String, String),
@@ -63,7 +63,7 @@ impl Models {
     /// The directories [`Models::find`] looks in, in order.
     pub fn search_dirs() -> Vec<PathBuf> {
         let mut dirs = Vec::new();
-        if let Some(d) = std::env::var_os("PDFCRAFT_MODELS") {
+        if let Some(d) = std::env::var_os("LUTAPDF_MODELS").or_else(|| std::env::var_os("PDFCRAFT_MODELS")) {
             dirs.push(PathBuf::from(d));
         }
         if let Some(exe) = std::env::current_exe().ok().and_then(|e| e.parent().map(Path::to_path_buf)) {
@@ -77,10 +77,15 @@ impl Models {
     /// executable (packaging/*):
     /// - `models/` beside it: the Windows MSI and portable zip;
     /// - `../Resources/models`: the macOS app bundle (`Contents/MacOS` → `Contents/Resources`);
-    /// - `../share/pdfcraft/models`: the FHS-style trees (`bin/` → `share/`) of the Linux
+    /// - `../share/lutapdf/models`: the FHS-style trees (`bin/` → `share/`) of the Linux
     ///   deb/rpm/tar.gz/AppImage/Flatpak and the FreeBSD tarball, wherever they are installed.
     pub fn dirs_beside_exe(exe_dir: &Path) -> Vec<PathBuf> {
-        vec![exe_dir.join("models"), exe_dir.join("../Resources/models"), exe_dir.join("../share/pdfcraft/models")]
+        vec![
+            exe_dir.join("models"),
+            exe_dir.join("../Resources/models"),
+            exe_dir.join("../share/lutapdf/models"),
+            exe_dir.join("../share/pdfcraft/models"),
+        ]
     }
 }
 

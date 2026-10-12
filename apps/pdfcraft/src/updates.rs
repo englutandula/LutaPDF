@@ -4,7 +4,7 @@ use std::time::Duration;
 
 use pdfcraft_ui_egui::updates::{RELEASES_PAGE, Release};
 
-const LATEST: &str = "https://api.github.com/repos/storytold/pdfcraft/releases/latest";
+const LATEST: &str = "https://api.github.com/repos/lutatech/lutapdf/releases/latest";
 
 /// The latest release. The answer is untrusted: its size is capped, and only a page under
 /// [`RELEASES_PAGE`] is ever offered for download (anything else falls back to that list).
@@ -17,7 +17,7 @@ pub fn latest_release() -> Result<Release, String> {
     let mut response = agent
         .get(LATEST)
         .header("Accept", "application/vnd.github+json")
-        .header("User-Agent", concat!("PdfCraft/", env!("CARGO_PKG_VERSION")))
+        .header("User-Agent", concat!("LutaPDF/", env!("CARGO_PKG_VERSION")))
         // Read error statuses ourselves: a 403 from GitHub usually means its anonymous
         // rate limit ran out, and the retry time rides along in a response header.
         .config()

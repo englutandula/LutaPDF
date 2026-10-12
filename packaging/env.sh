@@ -21,7 +21,7 @@ workspace_version() {
   ' "$ROOT/Cargo.toml"
 }
 
-VERSION="${PDFCRAFT_VERSION:-$(workspace_version)}"
+VERSION="${LUTAPDF_VERSION:-${PDFCRAFT_VERSION:-$(workspace_version)}}"
 if [ -z "$VERSION" ]; then
   echo "error: could not read [workspace.package] version from $ROOT/Cargo.toml" >&2
   exit 1
@@ -32,11 +32,13 @@ DIST="${DIST:-$ROOT/dist/release}"
 mkdir -p "$DIST"
 export DIST
 
-if [ -z "${PDFCRAFT_BUILD_SHA:-}" ]; then
-  PDFCRAFT_BUILD_SHA="$(git -C "$ROOT" rev-parse HEAD 2>/dev/null || true)"
+if [ -z "${LUTAPDF_BUILD_SHA:-}" ]; then
+  LUTAPDF_BUILD_SHA="${PDFCRAFT_BUILD_SHA:-$(git -C "$ROOT" rev-parse HEAD 2>/dev/null || true)}"
 fi
-export PDFCRAFT_BUILD_SHA
-export PDFCRAFT_BUILD_DATE="${PDFCRAFT_BUILD_DATE:-$(date -u +%Y-%m-%d)}"
+export LUTAPDF_BUILD_SHA
+export PDFCRAFT_BUILD_SHA="$LUTAPDF_BUILD_SHA"
+export LUTAPDF_BUILD_DATE="${LUTAPDF_BUILD_DATE:-${PDFCRAFT_BUILD_DATE:-$(date -u +%Y-%m-%d)}}"
+export PDFCRAFT_BUILD_DATE="$LUTAPDF_BUILD_DATE"
 export CARGO_TARGET_DIR="${CARGO_TARGET_DIR:-$ROOT/target}"
 
 # Emit a GitHub Actions warning (plain stderr outside Actions).

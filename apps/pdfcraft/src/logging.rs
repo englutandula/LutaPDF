@@ -26,15 +26,15 @@ use std::time::SystemTime;
 use log::LevelFilter;
 
 /// The current log file's name inside the log directory.
-pub const LOG_FILE: &str = "pdfcraft.log";
-/// How many previous logs are kept (`pdfcraft.1.log` … `pdfcraft.<KEEP>.log`).
+pub const LOG_FILE: &str = "lutapdf.log";
+/// How many previous logs are kept (`lutapdf.1.log` … `lutapdf.<KEEP>.log`).
 pub const KEEP: usize = 2;
 /// The log file stops growing past this size (a runaway warning can't fill the disk).
 pub const MAX_FILE_BYTES: u64 = 16 * 1024 * 1024;
 /// Records kept in memory until the log file is attached.
 pub const MAX_PENDING: usize = 512;
 /// The built-in filter when `RUST_LOG` is unset or empty.
-pub const DEFAULT_FILTER: &str = "warn,pdfcraft*=info";
+pub const DEFAULT_FILTER: &str = "warn,pdfcraft*=info,lutapdf*=info";
 
 /// Per-target level filter parsed from env_logger-style directives.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -116,7 +116,7 @@ fn civil_from_days(days: u64) -> (u64, u64, u64) {
 }
 
 fn numbered(dir: &Path, n: usize) -> PathBuf {
-    if n == 0 { dir.join(LOG_FILE) } else { dir.join(format!("pdfcraft.{n}.log")) }
+    if n == 0 { dir.join(LOG_FILE) } else { dir.join(format!("lutapdf.{n}.log")) }
 }
 
 /// Shift the previous logs up one (`.log` → `.1.log` → … → `.<KEEP>.log`, the oldest dropped)

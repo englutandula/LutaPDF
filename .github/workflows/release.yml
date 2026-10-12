@@ -1,14 +1,16 @@
-name: Release
+name: Release LutaPDF
 
 on:
   push:
-    branches: [release]
+    tags:
+      - 'v*'
   workflow_dispatch:
     inputs:
       version:
-        description: "Version override for a test run, e.g. 0.2.0-rc.1 (empty: Cargo.toml)"
+        description: 'Release version (optional, defaults to Cargo.toml or tag)'
+        required: false
         type: string
-        default: ""
+        default: ''
 
 permissions:
   contents: write
@@ -18,20 +20,106 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  release:
-    # Intentionally tracked at @main (not SHA-pinned) so org-wide CI improvements, security fixes, and build optimizations propagate without PR churn across all craftapp repos.
-    uses: storytold/craft-common-actions/.github/workflows/release.yml@main
-    with:
-      app-name: pdfcraft
-      app-title: PdfCraft
-      craft-fonts-ref: 3d9ab3a132ed0eff457e424226a435a901da30d3
-      version: ${{ inputs.version }}
-    secrets:
-      APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-      APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-      KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
-      APPLE_ID: ${{ secrets.APPLE_ID }}
-      APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
-      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-      WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
-      WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+  build-macos:
+    name: Build macOS (Universal)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin, x86_64-apple-darwin
+
+      - name: Build and Package macOS
+        env:
+          MACOS_SIGN_IDENTITY: "-"
+        run: |
+          ./packaging/macos/package.sh --arch universal
+
+      - name: Upload macOS Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: lutapdf-macos
+          path: dist/release/*
+
+  build-windows:
+    name: Build Windows (x64)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - name: Install WiX v5
+        run: dotnet tool install --global wix --version 5.0.2
+
+      - name: Build and Package Windows
+        shell: pwsh
+        run: |
+          pwsh packaging/windows/package.ps1 -Arch x64
+
+      - name: Upload Windows Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: lutapdf-windows
+          path: dist/release/*
+
+  build-linux:
+    name: Build Linux (x86_64)
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Linux build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libxkbcommon-dev libwayland-dev libx11-dev libxrandr-dev libxi-dev \
+            libgl1-mesa-dev libgtk-3-dev desktop-file-utils
+          echo 'deb [trusted=yes] https://repo.goreleaser.com/apt/ /' | sudo tee /etc/apt/sources.list.d/goreleaser.list
+          sudo apt-get update && sudo apt-get install -y nfpm
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build and Package Linux
+        run: |
+          ./packaging/linux/package.sh --formats "deb rpm tar cli"
+
+      - name: Upload Linux Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: lutapdf-linux
+          path: dist/release/*
+
+  publish:
+    name: Publish GitHub Release
+    needs: [build-macos, build-windows, build-linux]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Stage Release Files
+        run: |
+          mkdir -p release-files
+          find artifacts -type f -exec cp {} release-files/ \;
+          ls -la release-files
+
+      - name: Create or Update Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release-files/*
+          tag_name: ${{ github.ref_name }}
+          name: LutaPDF ${{ github.ref_name }}
+          generate_release_notes: true
+          draft: false
+          prerelease: false
