@@ -12,7 +12,7 @@ use egui::{Align, Layout};
 use crate::{PdfCraftApp, theme, widgets};
 
 /// Where every LutaPDF release is listed.
-pub const RELEASES_PAGE: &str = "https://github.com/lutatech/lutapdf/releases";
+pub const RELEASES_PAGE: &str = "https://github.com/englutandula/LutaPDF/releases";
 
 /// The latest published release.
 #[derive(Clone, Debug, PartialEq, Eq)]

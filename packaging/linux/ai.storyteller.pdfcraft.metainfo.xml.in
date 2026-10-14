@@ -20,8 +20,8 @@
   <icon type="stock">ai.storyteller.pdfcraft</icon>
   <!-- Only url types known to appstream 0.15 (Ubuntu 22.04, where CI validates): no vcs-browser. -->
   <url type="homepage">https://lutatech.com/lutapdf</url>
-  <url type="bugtracker">https://github.com/lutatech/lutapdf/issues</url>
-  <url type="help">https://github.com/lutatech/lutapdf</url>
+  <url type="bugtracker">https://github.com/englutandula/LutaPDF/issues</url>
+  <url type="help">https://github.com/englutandula/LutaPDF</url>
   <categories>
     <category>Office</category>
     <category>Viewer</category>

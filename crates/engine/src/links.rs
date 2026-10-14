@@ -8,7 +8,7 @@ pub const APP: &str = "lutapdf";
 
 pub const WEBSITE: &str = "https://lutatech.com";
 pub const APP_PAGE: &str = "https://lutatech.com/lutapdf";
-pub const GITHUB: &str = "https://github.com/lutatech/lutapdf";
+pub const GITHUB: &str = "https://github.com/englutandula/LutaPDF";
 
 /// A link and the registry command that opens it.
 #[derive(Clone, Copy, Debug)]
@@ -340,7 +340,7 @@ mod tests {
     #[test]
     fn urls_follow_the_scheme() {
         assert_eq!(super::APP_PAGE, format!("{}/{}", super::WEBSITE, super::APP));
-        assert_eq!(super::GITHUB, format!("https://github.com/lutatech/{}", super::APP));
+        assert_eq!(super::GITHUB, "https://github.com/englutandula/LutaPDF");
         for l in super::LINKS {
             assert!(l.url.starts_with("https://"), "{}", l.url);
             assert!(crate::commands::command(l.command).is_some(), "{} is a registered command", l.command);
