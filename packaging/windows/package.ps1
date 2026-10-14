@@ -66,6 +66,9 @@ if (-not $SkipBuild) {
 }
 
 $Bin = Join-Path $TargetDir "$Target\release"
+if ((Test-Path (Join-Path $Bin 'lutapdf.exe')) -and -not (Test-Path (Join-Path $Bin 'pdfcraft.exe'))) {
+  Copy-Item (Join-Path $Bin 'lutapdf.exe') (Join-Path $Bin 'pdfcraft.exe')
+}
 
 # Check both binaries' PE headers before packaging. Machine (COFF header) must match -Arch, so an
 # x64 build can never ship labelled arm64 (#61). Subsystem (optional header): 2 = Windows GUI,

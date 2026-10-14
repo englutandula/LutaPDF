@@ -61,6 +61,12 @@ if [ "$SKIP_BUILD" = 0 ]; then
   (cd "$ROOT" && cargo build --release --locked -p pdfcraft -p pdfcraft-cli "${args[@]}")
 fi
 
+for t in "${TARGETS[@]}"; do
+  if [ -f "$CARGO_TARGET_DIR/$t/release/lutapdf" ] && [ ! -f "$CARGO_TARGET_DIR/$t/release/pdfcraft" ]; then
+    cp "$CARGO_TARGET_DIR/$t/release/lutapdf" "$CARGO_TARGET_DIR/$t/release/pdfcraft"
+  fi
+done
+
 rm -rf "$WORK"
 mkdir -p "$WORK/bin"
 for bin in pdfcraft pdfcraft-cli; do

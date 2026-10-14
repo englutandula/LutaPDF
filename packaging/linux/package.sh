@@ -56,6 +56,9 @@ if [ "$SKIP_BUILD" = 0 ]; then
   fi
 fi
 BIN="$CARGO_TARGET_DIR/${CROSS_TARGET:+$CROSS_TARGET/}release"
+if [ -f "$BIN/lutapdf" ] && [ ! -f "$BIN/pdfcraft" ]; then
+  cp "$BIN/lutapdf" "$BIN/pdfcraft"
+fi
 WORK="$CARGO_TARGET_DIR/linux-package"
 STAGE="$WORK/root"
 rm -rf "$WORK"
