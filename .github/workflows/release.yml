@@ -19,12 +19,28 @@ concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: false
 
+# Release builds always embed the optional craft-fonts build input (AGENTS.md §1.4), pinned to the
+# same commit as ci.yml. CRAFT_FONTS_REQUIRED makes the build fail instead of silently shipping
+# without Japanese fonts. CRAFT_FONTS_DIR is set at runtime from $GITHUB_WORKSPACE so the path is right on every OS.
 jobs:
   build-macos:
     name: Build macOS (Universal)
     runs-on: macos-latest
+    env:
+      CRAFT_FONTS_REQUIRED: "1"
     steps:
       - uses: actions/checkout@v4
+
+      - name: Check out craft-fonts
+        uses: actions/checkout@v4
+        with:
+          repository: storytold/craft-fonts
+          ref: 3d9ab3a132ed0eff457e424226a435a901da30d3
+          path: craft-fonts
+
+      - name: Point the build at craft-fonts
+        shell: bash
+        run: echo "CRAFT_FONTS_DIR=$GITHUB_WORKSPACE/craft-fonts" >> "$GITHUB_ENV"
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -46,8 +62,21 @@ jobs:
   build-windows:
     name: Build Windows (x64)
     runs-on: windows-latest
+    env:
+      CRAFT_FONTS_REQUIRED: "1"
     steps:
       - uses: actions/checkout@v4
+
+      - name: Check out craft-fonts
+        uses: actions/checkout@v4
+        with:
+          repository: storytold/craft-fonts
+          ref: 3d9ab3a132ed0eff457e424226a435a901da30d3
+          path: craft-fonts
+
+      - name: Point the build at craft-fonts
+        shell: bash
+        run: echo "CRAFT_FONTS_DIR=$GITHUB_WORKSPACE/craft-fonts" >> "$GITHUB_ENV"
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -71,8 +100,21 @@ jobs:
   build-linux:
     name: Build Linux (x86_64)
     runs-on: ubuntu-22.04
+    env:
+      CRAFT_FONTS_REQUIRED: "1"
     steps:
       - uses: actions/checkout@v4
+
+      - name: Check out craft-fonts
+        uses: actions/checkout@v4
+        with:
+          repository: storytold/craft-fonts
+          ref: 3d9ab3a132ed0eff457e424226a435a901da30d3
+          path: craft-fonts
+
+      - name: Point the build at craft-fonts
+        shell: bash
+        run: echo "CRAFT_FONTS_DIR=$GITHUB_WORKSPACE/craft-fonts" >> "$GITHUB_ENV"
 
       - name: Install Linux build dependencies
         run: |
@@ -109,10 +151,24 @@ jobs:
           path: artifacts
 
       - name: Stage Release Files
+        env:
+          TAG: ${{ github.ref_name }}
         run: |
+          set -euo pipefail
           mkdir -p release-files
           find artifacts -type f -exec cp {} release-files/ \;
-          ls -la release-files
+          # Version-free copies so a website can link to
+          # https://github.com/<owner>/<repo>/releases/latest/download/LutaPDF-windows-x64.msi
+          VER="${TAG#v}"
+          cd release-files
+          for f in lutapdf-*; do
+            [ -e "$f" ] || continue
+            stable="${f/lutapdf-cli-$VER-/LutaPDF-cli-}"
+            stable="${stable/lutapdf-$VER-/LutaPDF-}"
+            if [ "$stable" != "$f" ]; then cp "$f" "$stable"; fi
+          done
+          sha256sum -- * > SHA256SUMS.txt
+          ls -la
 
       - name: Create or Update Release
         uses: softprops/action-gh-release@v2
