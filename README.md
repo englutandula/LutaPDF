@@ -11,6 +11,7 @@
 <h1 align="center">LutaPDF</h1>
 
 <p align="center">
+  <b>Developed by Eng.Luta</b><br>
   <b>The PDF workbench; an open-source, clean-room reimplementation of Adobe Acrobat, rebuilt in pure Rust.</b><br>
   Read, organize, combine, split and secure PDFs in a fast, native app, written in Rust from the ground up.<br>
   macOS · Windows · Linux · FreeBSD · the web
